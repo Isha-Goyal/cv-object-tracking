@@ -92,30 +92,25 @@ class BallTracker(Node):
                     (0,0,0))
         
     def myInRange(self, im, lower, upper):
-        
-        # create a test image that's black with a white square in the middle
-        test = np.zeros((400, 400))
-        
-        for i in range(100, 300):
-            for j in range(100, 300):
-                test[i, j] = 1 
 
-        layer1 = test # im(:, :, 0)
+
+        layer1 = im[:, :, 0]
         layer1[layer1 < lower[2]] = 0
         layer1[layer1 > upper[2]] = 0
-        # layer1[layer1 > 0] = 1
+        layer1[layer1 > 0] = 255
+
+        return layer1
 
         #if you return test before the layer1 code, it'll return the right thing. If you return it after, it'll be all black.
         # also, with the normal video stream, if you keep everything but the line where you're turning nonzero values into 1s, then the picture does 
         # appear as grayscale. adding that line makes it all black. not the same as for test.
 
-        return test
+        
     
 
 
     def run_loop(self):
         # NOTE: only do cv2.imshow and cv2.waitKey in this function 
-        print(self.cv_image)
         if not self.cv_image is None:
             cv2.imshow('video_window', self.cv_image)
             self.binary_image = cv2.inRange(self.cv_image, (self.rbg_tuned_values[0], self.rbg_tuned_values[1], self.rbg_tuned_values[2]), (self.rbg_tuned_values[3], self.rbg_tuned_values[4], self.rbg_tuned_values[5])) 
