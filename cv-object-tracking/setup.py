@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'cv-object-tracking'
+package_name = 'cv_object_tracking'
 
 setup(
     name=package_name,
@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+'ball_tracker = cv_object_tracking.ball_tracker:main',
         ],
     },
 )
