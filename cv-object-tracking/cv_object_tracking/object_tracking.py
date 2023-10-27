@@ -9,20 +9,10 @@ if __name__ == '__main__' :
     tracker_types = ['MIL','KCF', 'CSRT']
     tracker_type = tracker_types[2]
 
-    if tracker_type == 'BOOSTING':
+    if tracker_type == 'MIL':
         tracker = cv2.TrackerBoosting_create()
-    elif tracker_type == 'MIL':
-        tracker = cv2.TrackerMIL_create()
     elif tracker_type == 'KCF':
         tracker = cv2.TrackerKCF_create()
-    elif tracker_type == 'TLD':
-        tracker = cv2.TrackerTLD_create()
-    elif tracker_type == 'MEDIANFLOW':
-        tracker = cv2.TrackerMedianFlow_create()
-    elif tracker_type == 'GOTURN':
-        tracker = cv2.TrackerGOTURN_create()
-    elif tracker_type == 'MOSSE':
-        tracker = cv2.TrackerMOSSE_create()
     elif tracker_type == "CSRT":
         tracker = cv2.TrackerCSRT_create()
     else:
@@ -31,7 +21,7 @@ if __name__ == '__main__' :
 
  
     # Read video
-    video = cv2.VideoCapture('/home/reuben/ros2_ws/src/mini_projects/cv-object-tracking/cv-object-tracking/cv-object-tracking/street.mp4')
+    video = cv2.VideoCapture('/home/reuben/ros2_ws/src/mini_projects/cv-object-tracking/cv-object-tracking/images_and_videos/street.mp4')
  
     # Exit if video not opened.
     if not video.isOpened():
