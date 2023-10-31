@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
 'ball_tracker = cv_object_tracking.ball_tracker:main',
-'meanshift = cv_object_tracking.meanshift:main'
+'meanshift = cv_object_tracking.meanshift:main',
+'sift = cv_object_tracking.sift:main'
         ],
     },
 )
