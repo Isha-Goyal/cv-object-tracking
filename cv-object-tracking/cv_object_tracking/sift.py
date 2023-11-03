@@ -23,13 +23,19 @@ r = cv.selectROI("select the area", image) # [top left x, top left y, width, hei
 img1 = cv.imread(folder_dir + imNames[0], cv.IMREAD_GRAYSCALE)
 img2 = cv.imread(folder_dir + imNames[1], cv.IMREAD_GRAYSCALE)
 
-roi_image = img1[int(r[1]):int(r[1]+r[3]),  
-                    int(r[0]):int(r[0]+r[2])] 
+x = r[0]
+y = r[1]
+width = r[2]
+height = r[3]
+
+img1_roi = img1[int(y):int(y+height),  
+                    int(x):int(x+width)]
+img2_roi = img2[int(y)-int(height/2):int(y+(2*height)), int(x)-int(width/2):int(x+width)]
 
 
 # find the keypoints and descriptors with SIFT
-kp1, des1 = sift.detectAndCompute(roi_image,None)
-kp2, des2 = sift.detectAndCompute(img2,None)
+kp1, des1 = sift.detectAndCompute(img1_roi,None)
+kp2, des2 = sift.detectAndCompute(img2_roi,None)
 
 # BFMatcher with default params
 bf = cv.BFMatcher()
@@ -42,16 +48,21 @@ for m,n in matches:
         good.append([m])
 
 # cv.drawMatchesKnn expects list of lists as matches.
-img3 = cv.drawMatchesKnn(roi_image,kp1,img2,kp2,good,None,flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+img3 = cv.drawMatchesKnn(img1_roi,kp1,img2_roi,kp2,good,None,flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+
 
 # plt.imshow(img3),plt.show()
 
-# for i in range(0, len(matches)):
+for i in range(0, len(matches)):
 
-marked_image = cv.circle(roi_image, (20, 10), radius=2, color=(0, 0, 255), thickness=1)
+    img1_roi = cv.circle(img1_roi, (int(kp1[i].pt[0]), int(kp1[i].pt[1])), radius=1, color=(255, 255, 255), thickness=0)
 
-cv.imshow('marked_image', marked_image)
-cv.imshow('roi_image', roi_image)
+    index = matches[i][1].trainIdx
+    img2_roi = cv.circle(img2_roi, (int(kp2[index].pt[0]), int(kp2[index].pt[1])), radius=1, color=(255, 255, 255), thickness=0)
+
+cv.imshow('marked_image', img1_roi)
+cv.imshow('second_image', img2_roi)
+
 cv.waitKey(0)
 
 ##############################################3
@@ -100,11 +111,11 @@ cv.waitKey(0)
 #       print(f'({x},{y})')
       
 #       # put coordinates as text on the image
-#       cv.putText(roi_image, f'({x},{y})',(x,y),
+#       cv.putText(img1_roi, f'({x},{y})',(x,y),
 #       cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
       
 #       # draw point on the image
-#       cv.circle(roi_image, (x,y), 3, (0,255,255), -1)
+#       cv.circle(img1_roi, (x,y), 3, (0,255,255), -1)
  
 
 # # create a window
