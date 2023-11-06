@@ -14,56 +14,87 @@ imNames = [f"first_frame_0{i}.png" for i in range(0, 10)] + [f"first_frame_{i}.p
 # Initiate SIFT detector
 sift = cv.SIFT_create()
 
-image = cv.imread(folder_dir + imNames[0], cv.IMREAD_GRAYSCALE)
-r = cv.selectROI("select the area", image) # [top left x, top left y, width, height]
-
-
-# loop through and play images
-# for i in range(numImages - 1):
 img1 = cv.imread(folder_dir + imNames[0], cv.IMREAD_GRAYSCALE)
 img2 = cv.imread(folder_dir + imNames[1], cv.IMREAD_GRAYSCALE)
+r = cv.selectROI("select the area", image) # [top left x, top left y, width, height]
 
-x = r[0]
-y = r[1]
-width = r[2]
-height = r[3]
+x = int(r[0])
+y = int(r[1])
+width = int(r[2])
+height = int(r[3])
 
-img1_roi = img1[int(y):int(y+height),  
-                    int(x):int(x+width)]
-img2_roi = img2[int(y)-int(height/2):int(y+(2*height)), int(x)-int(width/2):int(x+width)]
+for i in range(len(imNames)):
+    
+    # pick img1 roi and crop image accordingly
+    img1_roi = img1[y:y+height, x:x+width]
 
+    # meant to protect against the roi being too close to the edges of the frame so the larger roi tries to index parts of the image that aren't there
+    newY = int(y-height/2)
+    newX = int(x-width/2)
+    newHeight = int(newY+(2*height))
+    newWidth = int(newX+(2*width))
 
-# find the keypoints and descriptors with SIFT
-kp1, des1 = sift.detectAndCompute(img1_roi,None)
-kp2, des2 = sift.detectAndCompute(img2_roi,None)
-
-# BFMatcher with default params
-bf = cv.BFMatcher()
-matches = bf.knnMatch(des1,des2,k=2)
-
-# # Apply ratio test
-good = []
-for m,n in matches:
-    if m.distance < 0.75*n.distance:
-        good.append([m])
-
-# cv.drawMatchesKnn expects list of lists as matches.
-img3 = cv.drawMatchesKnn(img1_roi,kp1,img2_roi,kp2,good,None,flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    if newY <= 0:
+        newY = 0
+    elif newX <= 0:
+        newX = 0
 
 
-# plt.imshow(img3),plt.show()
+    img2_roi = img2[newY:newHeight, newX:newWidth]
 
-for i in range(0, len(matches)):
 
-    img1_roi = cv.circle(img1_roi, (int(kp1[i].pt[0]), int(kp1[i].pt[1])), radius=1, color=(255, 255, 255), thickness=0)
+    # find the keypoints and descriptors with SIFT
+    kp1, des1 = sift.detectAndCompute(img1_roi,None)
+    kp2, des2 = sift.detectAndCompute(img2_roi,None)
 
-    index = matches[i][1].trainIdx
-    img2_roi = cv.circle(img2_roi, (int(kp2[index].pt[0]), int(kp2[index].pt[1])), radius=2, color=(255, 255, 255), thickness=1)
+    # BFMatcher with default params
+    bf = cv.BFMatcher()
+    matches = bf.knnMatch(des1,des2,k=2)
 
-cv.imshow('marked_image', img1_roi)
-cv.imshow('second_image', img2_roi)
+    # # Apply ratio test
+    good = []
+    for m,n in matches:
+        if m.distance < 0.75*n.distance:
+            good.append([m])
 
-cv.waitKey(0)
+    # cv.drawMatchesKnn expects list of lists as matches.
+    img3 = cv.drawMatchesKnn(img1_roi,kp1,img2_roi,kp2,good,None,flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    sumX, sumY = 0, 0
+
+    # plt.imshow(img3),plt.show()
+
+    for i in range(0, len(matches)):
+
+        img1_roi = cv.circle(img1_roi, (int(kp1[i].pt[0]), int(kp1[i].pt[1])), radius=1, color=(255, 255, 255), thickness=0)
+
+        index = matches[i][1].trainIdx
+        x = int(kp2[index].pt[0])
+        y = int(kp2[index].pt[1])
+        img2_roi = cv.circle(img2_roi, (x, y), radius=2, color=(255, 255, 255), thickness=1)
+
+        # determine "center of mass" of identified points in second image
+        sumX = sumX + x
+        sumY = sumY + y
+
+    sumX = int(sumX/len(matches))
+    sumY = int(sumY/len(matches))
+
+    # draw center of mass on second image
+    img2_roi = cv.circle(img2_roi, (sumX, sumY), radius=4, color=(255, 255, 255), thickness=3)
+
+    cv.imshow('marked_image', img1_roi)
+    cv.imshow('second_image', img2_roi)
+
+    cv.waitKey(40)
+
+    # read next set of images
+    img1 = cv.imread(folder_dir + imNames[i], cv.IMREAD_GRAYSCALE)
+    img2 = cv.imread(folder_dir + imNames[i+1], cv.IMREAD_GRAYSCALE)
+
+    # to do: process so we get an ROI centered on the com
+    # x = y = 
+    # assumption: keeping height and width of ROI same as the original
+
 
 ##############################################3
 # cv.imshow('image', img2)

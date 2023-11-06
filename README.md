@@ -61,6 +61,8 @@ One way we came up with to mitigate that was to match the keypoints in the first
 ![Matches Between First ROI and Cropped Second Frame](report_images_and_videos/kypt_matching_two_rois.png)
 The second frame is cropped automatically based on the size of the original ROI.
 
+The goal of this method was to, again, build understanding with a more conceptually focused, lower-level approach than using a full OpenCV pipeline that would run all the parts of SIFT on this format of data.
+
 ### Multi-object Tracking
 We also faced a design decision regarding multi-object tracking management. Initially, we considered using OpenCV's MultiTracker_create for its simplicity in handling multiple trackers. However we decided to implement a loop that created and updated each tracker separately:
 
@@ -117,6 +119,8 @@ With more time to enhance our project, one significant improvement would be inte
 
 ![Manual ROI Selection](report_images_and_videos/manual_roi_select.png)
 Every time one runs the program, they must manually select where the person is in the frame.
+
+It would also be interesting to make our implementation of SIFT more robust. For example, the size of the frame we're looking at could change when the person comes closer to the camera and thus becomes bigger. Or, we could try to use our version of SIFT to do multi-object tracking and compare its performance to that of the different built-in tracking pipelines.
 
 # Lessons Learned
 
