@@ -27,6 +27,7 @@ for im_idx in range(len(imNames)):
 
     # pick img1 roi and crop image accordingly
     img1_roi = img1[y:y+height, x:x+width]
+    cv.imshow('test', img1_roi)
 
     # meant to protect against the roi being too close to the edges of the frame so the larger roi tries to index parts of the image that aren't there
     newY = int(y-height/2)
