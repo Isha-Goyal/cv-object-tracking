@@ -42,7 +42,7 @@ To run SIFT, images must be loaded in as grayscale, then put through a series of
 
 The SIFT object, which was created earlier in the code takes in a grayscale image and returns a list of its keypoints and the corresponding descriptors. Notably, these are as keypoint objects and descriptor objects, which are specific to computer vision applications. To get information from them, you must operate on their specific properties. The brute-force matcher (BFMatcher in the code) takes in just the descriptors. It's also not specific to the sift object, because brute-force matching can be used with other methods of keypoint and descriptor detection, such as SURF. We then pick out the best matches to move forward with. Based on this method, we can load in a whole series of images and select the region of interest with the person in the first frame. By matching the keypoints of this image to the next frame in the video, you will be able to define the new region of interest from which to make keypoints for the following image, and so on. More on SIFT to follow in the design decisions section.
 
-![Marked Centroid](report_images_and_videos/sift_centroid_mark.png)
+![Marked Centroid](report_images_and_videos/sift_centroid_mark.png)\
 The leftmost image is the region of interest from the first frame, the middle image is the region of interest expanded and cropped from the second frame, and the rightmost image is the same as the middle but with the centroid or center of mass of all the matching keypoints marked with a larger circle.
 
 In the next iteration, we redefine the ROI to be centered around the centroid of our previous image and then match it to the next image in the set. We continue this process for each pair of frames until we've made it through the video.
@@ -55,15 +55,15 @@ In the context of multi-person tracking within hospital settings, we instantiate
 ### SIFT
 There are several ways to apply the basic process of SIFT along with brute-force matching to track a person through the frames of a video. We opted to start by choosing a region of interest in the first frame and only calculating the keyoints from that. This is computationally faster than processing the entire image before selecting the region of interest. It also results in less operations on keypoints, which we found to be more complicated than operations on the image or lists or data later in the process because of the structures of those objects. The drawback, however, was that it was much more likely to match keypoints poorly with the larger image because there were so few keypoints to work from.
 
-![small to big image keypoints](report_images_and_videos/small_to_big_img_keypoints.png)
+![small to big image keypoints](report_images_and_videos/small_to_big_img_keypoints.png)\
 Matching the small region of interest in the first frame to the entirety of the second frame results in keypoints being somewhat scattered, not concentrated on the target.
 
-![Keypoint Matching for Two Full Frames](report_images_and_videos/kypt_matching_full_frames.png)
+![Keypoint Matching for Two Full Frames](report_images_and_videos/kypt_matching_full_frames.png)\
 Using more context results in better matching, but it also becomes harder to work with the data because there are such a large number of keypoints, descriptors, and matches, so filtering for only the ones we want becomes more complicated.
 
 One way we came up with to mitigate that was to match the keypoints in the first image with a smaller version of the second image. If we make the assumption that the target can't jump significantly between consecutive frames, we can crop the second image to an area that's larger than the ROI in the first image, but that excludes a lot of the image that isn't relevant to our tracker, like the rest of the room.
 
-![Matches Between First ROI and Cropped Second Frame](report_images_and_videos/kypt_matching_two_rois.png)
+![Matches Between First ROI and Cropped Second Frame](report_images_and_videos/kypt_matching_two_rois.png)\
 The second frame is cropped automatically based on the size of the original ROI.
 
 The goal of this method was to, again, build understanding with a more conceptually focused, lower-level approach than using a full OpenCV pipeline that would run all the parts of SIFT on this format of data.
@@ -122,7 +122,7 @@ A more conceptual challenge we faced at the very beginning was scoping out the p
 
 With more time to enhance our project, one significant improvement would be integrating automatic object detection to streamline the tracking initialization process. Currently, the requirement for manual selection of regions of interest (ROIs) to track objects, especially in multi-object situations, is time-consuming and subject to human error. With automated detection, we could employ advanced machine learning models, such as Convolutional Neural Networks (CNNs), to accurately and efficiently identify individuals in the first frame of the video. This would not only expedite the setup phase by eliminating the need for manual ROI specification but also increase the system's scalability and robustness.
 
-![Manual ROI Selection](report_images_and_videos/manual_roi_select.png)
+![Manual ROI Selection](report_images_and_videos/manual_roi_select.png)\
 Every time one runs the program, they must manually select where the person is in the frame.
 
 It would also be interesting to make our implementation of SIFT more robust. For example, the size of the frame we're looking at could change when the person comes closer to the camera and thus becomes bigger. Or, we could try to use our version of SIFT to do multi-object tracking and compare its performance to that of the different built-in tracking pipelines.
