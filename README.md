@@ -48,6 +48,9 @@ The leftmost image is the region of interest from the first frame, the middle im
 In the next iteration, we redefine the ROI to be centered around the centroid of our previous image and then match it to the next image in the set. We continue this process for each pair of frames until we've made it through the video.
 
 ### Multi Person Tracking
+CSRT Algorythm             |  MIL Algorythm
+:-------------------------:|:-------------------------:
+![](report_images_and_videos/tracked_output_CSRT.gif)  |  ![](report_images_and_videos/tracked_output_MIL.gif)
 In the context of multi-person tracking within hospital settings, we instantiate an individual tracker for each staff member detected in the initial frame, utilizing our choice of the MIL, KCF, or CSRT algorithms. For each person, a unique tracking object is created, and a bounding box is manually selected or automatically determined around them. This is achieved through a loop that initializes a new tracker instance with the `cv2.Tracker<Type>_create()` function for each bounding box. Each tracker is associated with a specific individual and is responsible for updating the position of the bounding box as the person moves across the camera's field of view. The tracking algorithm accounts for changes in appearance and position, adjusting each bounding box in subsequent frames. This collection of trackers operates concurrently, with each tracker independently updating its state without interference from the others. This allows for the simultaneous tracking of multiple individuals, paving the way for sophisticated analysis of staff movement and resource allocation in efforts to increase efficiency in healthcare facilities.
 
 # Key Design Decisions
