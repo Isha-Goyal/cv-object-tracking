@@ -58,7 +58,7 @@ for i in range(0, len(matches)):
     img1_roi = cv.circle(img1_roi, (int(kp1[i].pt[0]), int(kp1[i].pt[1])), radius=1, color=(255, 255, 255), thickness=0)
 
     index = matches[i][1].trainIdx
-    img2_roi = cv.circle(img2_roi, (int(kp2[index].pt[0]), int(kp2[index].pt[1])), radius=1, color=(255, 255, 255), thickness=0)
+    img2_roi = cv.circle(img2_roi, (int(kp2[index].pt[0]), int(kp2[index].pt[1])), radius=2, color=(255, 255, 255), thickness=1)
 
 cv.imshow('marked_image', img1_roi)
 cv.imshow('second_image', img2_roi)

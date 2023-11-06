@@ -22,7 +22,26 @@ For this model, we employ one of three advanced tracking methods—MIL, KCF, or 
 After experimenting with some of openCV's built-in object tracking algorithms like mean shifting, we decided to implement SIFT tracking on a set of images from a video a security camera took in a hospital showing medical professionals moving around.
 
 #### On SIFT
-SIFT stands for Scale-Invariant Feature Transform, and its main benefits are that it is both scale and rotation invariant. To start, algorithms detect extrema (such as corners, edges, and areas of high contrast) to pick out keypoints. These keypoints can be oriented to match the orientation of keypoints detected in the comparison image. This step is what makes SIFT rotation invariant. Then, each keypoint is given a descriptor, which encodes data about the values and contrasts of the pixels near the keypoint. Based on these descriptors, keypoints can be matched to one another. There are several ways to do that. One method is brute force matching which evaluates the similarity of keypoint descriptors across images using the ratio test, which quantifies the "distance" between a pair of descriptors.
+SIFT stands for Scale-Invariant Feature Transform, and its main benefits are that it is both scale and rotation invariant. To start, algorithms detect extrema (such as corners, edges, and areas of high contrast) to pick out keypoints. These keypoints can be oriented to match the orientation of keypoints detected in the comparison image. This step is what makes SIFT rotation invariant. Then, each keypoint is given a descriptor, which encodes data about the values and contrasts of the pixels near the keypoint. Based on these descriptors, keypoints can be matched to one another. There are several ways to do that. One method is brute force matching which evaluates the similarity of keypoint descriptors across images using the ratio test, which quantifies the "distance" between a pair of descriptors. Whichever keypoints are the nearest to one another are assumed to be the same point in both images.
+
+#### Our Implementation
+To run SIFT, images must be loaded in as grayscale, then put through a series of functions to detect and match keypoints and descriptors:
+
+    # find the keypoints and descriptors with SIFT
+    kp1, des1 = sift.detectAndCompute(img1_roi,None)
+    kp2, des2 = sift.detectAndCompute(img2_roi,None)
+
+    # BFMatcher with default params
+    bf = cv.BFMatcher()
+    matches = bf.knnMatch(des1,des2,k=2)
+
+    # # Apply ratio test
+    good = []
+    for m,n in matches:
+        if m.distance < 0.75*n.distance:
+            good.append([m])
+
+The SIFT object, which was created earlier in the code takes in a grayscale image and returns a list of its keypoints and the corresponding descriptors. Notably, these are as keypoint objects and descriptor objects, which are specific to computer vision applications. To get information from them, you must operate on their specific properties. The brute-force matcher (BFMatcher in the code) takes in just the descriptors. It's also not specific to the sift object, because brute-force matching can be used with other methods of keypoint and descriptor detection, such as SURF. We then pick out the best matches to move forward with. Based on this method, we can load in a whole series of images and select the region of interest with the person in the first frame. By matching the keypoints of this image to the next frame in the video, you will be able to define the new region of interest from which to make keypoints for the following image, and so on.
 
 ### Multi Person Tracking
 In the context of multi-person tracking within hospital settings, we instantiate an individual tracker for each staff member detected in the initial frame, utilizing our choice of the MIL, KCF, or CSRT algorithms. For each person, a unique tracking object is created, and a bounding box is manually selected or automatically determined around them. This is achieved through a loop that initializes a new tracker instance with the `cv2.Tracker<Type>_create()` function for each bounding box. Each tracker is associated with a specific individual and is responsible for updating the position of the bounding box as the person moves across the camera's field of view. The tracking algorithm accounts for changes in appearance and position, adjusting each bounding box in subsequent frames. This collection of trackers operates concurrently, with each tracker independently updating its state without interference from the others. This allows for the simultaneous tracking of multiple individuals, paving the way for sophisticated analysis of staff movement and resource allocation in efforts to increase efficiency in healthcare facilities.
@@ -30,7 +49,21 @@ In the context of multi-person tracking within hospital settings, we instantiate
 
 # Describe a design decision you had to make when working on your project and what you ultimately did (and why)? These design decisions could be particular choices for how you implemented some part of an algorithm or perhaps a decision regarding which of two external packages to use in your project.
 
-We faced a design decision regarding object tracking management. Initially, we considered using OpenCV's MultiTracker_create for its simplicity in handling multiple trackers. However we decided to implement a loop that created and updated each tracker separately:
+There are several ways to apply the basic process of SIFT along with brute-force matching to track a person through the frames of a video. We opted to start by choosing a region of interest in the first frame and only calculating the keyoints from that. This is computationally faster than processing the entire image before selecting the region of interest. It also results in less operations on keypoints, which we found to be more complicated than operations on the image or lists or data later in the process because of the structures of those objects. The drawback, however, was that it was much more likely to match keypoints poorly with the larger image because there were so few keypoints to work from.
+
+![small to big image keypoints](report_images_and_videos/small_to_big_img_keypoints.png)
+Matching the small region of interest in the first frame to the entirety of the second frame results in keypoints being somewhat scattered, not concentrated on the target.
+
+![Keypoint Matching for Two Full Frames](report_images_and_videos/kypt_matching_full_frames.png)
+Using more context results in better matching, but it also becomes harder to work with the data because there are such a large number of keypoints, descriptors, and matches, so filtering for only the ones we want becomes more complicated.
+
+One way we came up with to mitigate that was to match the keypoints in the first image with a smaller version of the second image. If we make the assumption that the target can't jump significantly between consecutive frames, we can crop the second image to an area that's larger than the ROI in the first image, but that excludes a lot of the image that isn't relevant to our tracker, like the rest of the room.
+
+![Matches Between First ROI and Cropped Second Frame](report_images_and_videos/kypt_matching_two_rois.png)
+The second frame is cropped automatically based on the size of the original ROI.
+
+
+We also faced a design decision regarding multi-object tracking management. Initially, we considered using OpenCV's MultiTracker_create for its simplicity in handling multiple trackers. However we decided to implement a loop that created and updated each tracker separately:
 
     trackers = []
     for bbox in bboxes:
@@ -89,6 +122,9 @@ More Ideas:
 # What would you do to improve your project if you had more time?
 
 With more time to enhance our project, one significant improvement would be integrating automatic object detection to streamline the tracking initialization process. Currently, the requirement for manual selection of regions of interest (ROIs) to track multiple objects is time-consuming and subject to human error. With automated detection, we could employ advanced machine learning models, such as Convolutional Neural Networks (CNNs), to accurately and efficiently identify individuals in the first frame of the video. This would not only expedite the setup phase by eliminating the need for manual ROI specification but also increase the system's scalability and robustness.
+
+![Manual ROI Selection](report_images_and_videos/manual_roi_select.png)
+Every time one runs the program, they must manually select where the person is in the frame.
 
 More Ideas:
 - More sophisticated tracking algorithm that can work on harder datasets (e.g. the electric scooter one)
